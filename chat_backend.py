@@ -17,25 +17,28 @@ def send_message(msg, M):
         sock.sendto(chunk, (RECEIVER_IP, PORT))
 
 def receive(chat_window, qam_option):
-    buffer = bytearray()
+        buffer = bytearray()
 
-    while True:
-        data, _ = sock.recvfrom(2048)
-        buffer.extend(data)
-        symbols = np.frombuffer(buffer, dtype=np.complex64)
-        M = int(qam_option.get())
+        while True:
+                data, _ = sock.recvfrom(2048)
+                buffer.extend(data)
 
-        bits = qam_demodulate(symbols, M)
-        for i in range(len(bits) - len(STARTER_BIT)):
-            if np.array_equal(bits[i:i+len(STARTER_BIT)], STARTER_BIT):
-                msg_bits = bits[i+len(STARTER_BIT):]
-                try:
-                    msg = bits_to_string(msg_bits)
-                    chat_window.insert('end', "Friend: " + msg + "\n")
-                    buffer.clear()
-                    break
-                except:
-                    continue
+                # Work with a copy to avoid BufferError
+                buffer_copy = bytes(buffer)
+                symbols = np.frombuffer(buffer_copy, dtype=np.complex64)
+                M = int(qam_option.get())
+
+                bits = qam_demodulate(symbols, M)
+                for i in range(len(bits) - len(STARTER_BIT)):
+                        if np.array_equal(bits[i:i+len(STARTER_BIT)], STARTER_BIT):
+                                msg_bits = bits[i+len(STARTER_BIT):]
+                                try:
+                                        msg = bits_to_string(msg_bits)
+                                        chat_window.insert('end', "Friend: " + msg + "\n")
+                                        buffer.clear()
+                                        break
+                                except:
+                                        continue
 
 def start_receiver_thread(chat_window, qam_option):
     thread = threading.Thread(target=receive, args=(chat_window, qam_option), daemon=True)

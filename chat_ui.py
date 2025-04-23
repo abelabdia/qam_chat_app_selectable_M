@@ -12,6 +12,7 @@ def send():
 # UI setup
 root = tk.Tk()
 root.title("Raspberry Pi QAM Chat")
+root.bind('<Return>', lambda event: send())
 
 chat_window = tk.Text(root, height=20, width=50)
 chat_window.pack()
